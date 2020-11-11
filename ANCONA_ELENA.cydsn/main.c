@@ -36,9 +36,9 @@
 
 
 /**
-*   \brief Hex value to set normal mode to the accelerator
+*   \brief Hex value to set high resolution mode to the accelerator --> frequency??
 */
-#define LIS3DH_NORMAL_MODE_CTRL_REG1 0x47
+#define LIS3DH_HIGH_MODE_CTRL_REG1 0x47  //FREQ=1Hz
 
 /**
 *   \brief  Address of the Temperature Sensor Configuration register
@@ -67,6 +67,11 @@
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
+    
+    EEPROM_UpdateTemperature();
+    
+    //Check the last frequency saved into the EEPROM 
+    uint8_t frequency= EEPROM_ReadByte(0x00);
 
     /* Place your initialization/startup code here (e.g. MyInst_Start()) */
     I2C_Peripheral_Start();
@@ -179,9 +184,9 @@ int main(void)
         
     UART_PutString("\r\nWriting new values..\r\n");
     
-    if (ctrl_reg1 != LIS3DH_NORMAL_MODE_CTRL_REG1)
+    if (ctrl_reg1 != LIS3DH_HIGH_MODE_CTRL_REG1)
     {
-        ctrl_reg1 = LIS3DH_NORMAL_MODE_CTRL_REG1;
+        ctrl_reg1 = LIS3DH_HIGH_MODE_CTRL_REG1;
     
         error = I2C_Peripheral_WriteRegister(LIS3DH_DEVICE_ADDRESS,
                                              LIS3DH_CTRL_REG1,
@@ -198,23 +203,7 @@ int main(void)
         }
     }
     
-    /******************************************/
-    /*     Read Control Register 1 again      */
-    /******************************************/
-
-    error = I2C_Peripheral_ReadRegister(LIS3DH_DEVICE_ADDRESS,
-                                        LIS3DH_CTRL_REG1,
-                                        &ctrl_reg1);
     
-    if (error == NO_ERROR)
-    {
-        sprintf(message, "CONTROL REGISTER 1 after overwrite operation: 0x%02X\r\n", ctrl_reg1);
-        UART_PutString(message); 
-    }
-    else
-    {
-        UART_PutString("Error occurred during I2C comm to read control register 1\r\n");   
-    }
     
      /******************************************/
      /* I2C Reading Temperature sensor CFG reg */
@@ -302,7 +291,7 @@ int main(void)
     OutArray[0] = header;
     OutArray[3] = footer;
     int16 conversion = 1;
-    int16 dirtytrick = 1000;
+    int16 converter = 1000;
     float outtempconv;
     
     uint8_t TemperatureData[2];
@@ -311,15 +300,7 @@ int main(void)
     for(;;)
     {
         CyDelay(100);
-/*        
-        error = I2C_Peripheral_ReadRegister(LIS3DH_DEVICE_ADDRESS,
-                                            LIS3DH_OUT_ADC_3L,
-                                            &TemperatureData[0]);
-        
-        error = I2C_Peripheral_ReadRegister(LIS3DH_DEVICE_ADDRESS,
-                                            LIS3DH_OUT_ADC_3H,
-                                            &TemperatureData[1]);
-*/
+
         error = I2C_Peripheral_ReadRegisterMulti(LIS3DH_DEVICE_ADDRESS,
                                                 LIS3DH_OUT_ADC_3L,
                                                 2,
@@ -329,10 +310,8 @@ int main(void)
             OutTemp = (int16)((TemperatureData[0] | (TemperatureData[1]<<8)))>>6;
             outtempconv = OutTemp * conversion;
             
-            OutTemp = (int16) (outtempconv * dirtytrick);
+            OutTemp = (int16) (outtempconv * converter);
             
-//            sprintf(message, "Temp output: %d\r\n", OutTemp);
-//            UART_Debug_PutString(message);
             OutArray[1] = (uint8_t)(OutTemp & 0xFF);
             OutArray[2] = (uint8_t)(OutTemp >> 8);
             UART_PutArray(OutArray, 4);
