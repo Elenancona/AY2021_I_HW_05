@@ -69,9 +69,8 @@ int main(void)
     CyGlobalIntEnable; /* Enable global interrupts. */
     
     EEPROM_UpdateTemperature();
-    
-    //Check the last frequency saved into the EEPROM 
-    uint8_t frequency= EEPROM_ReadByte(0x00);
+    EEPROM_Start();  
+   
 
     /* Place your initialization/startup code here (e.g. MyInst_Start()) */
     I2C_Peripheral_Start();
@@ -181,8 +180,6 @@ int main(void)
     /*            I2C Writing                 */
     /******************************************/
     
-        
-    UART_PutString("\r\nWriting new values..\r\n");
     
     if (ctrl_reg1 != LIS3DH_HIGH_MODE_CTRL_REG1)
     {

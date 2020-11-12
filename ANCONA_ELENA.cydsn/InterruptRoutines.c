@@ -14,8 +14,16 @@
 #include "I2C_Interface.h"
 #include "stdio.h"
 
+uint8 counter=0;
+
 CY_ISR(Custom_isr)
-{  
-    ReadPacketFlag=1;
+{      
+    FlagInterrupt=1; 
+    counter++;
+    
+    if (counter==7)
+    {
+        counter=0;
+    }
 }
 /* [] END OF FILE */

@@ -18,7 +18,7 @@
 
     CY_ISR_PROTO(Custom_isr);
     
-    volatile uint8 ReadPacketFlag;
+    volatile uint8 FlagInterrupt;
     
 #endif
 /* [] END OF FILE */
