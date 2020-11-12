@@ -11,9 +11,11 @@
 */
 // Include required header files
 #include "I2C_Interface.h"
+#include "InterruptRoutines.h"
 #include "project.h"
 #include "stdio.h"
 
+uint8 frequency; 
 /**
 *   \brief 7-bit I2C address of the slave device.
 */
@@ -36,9 +38,14 @@
 
 
 /**
-*   \brief Hex value to set high resolution mode to the accelerator --> frequency??
+*   \brief Hex value to set high resolution mode to the accelerator
 */
-#define LIS3DH_HIGH_MODE_CTRL_REG1 0x47  //FREQ=1Hz
+#define FREQ_1Hz    0x17  //FREQ=1Hz
+#define FREQ_10Hz   0x27 
+#define FREQ_25Hz   0x37 
+#define FREQ_50Hz   0x47 
+#define FREQ_100Hz  0x57 
+#define FREQ_200Hz  0x67 
 
 /**
 *   \brief  Address of the Temperature Sensor Configuration register
@@ -181,9 +188,9 @@ int main(void)
     /******************************************/
     
     
-    if (ctrl_reg1 != LIS3DH_HIGH_MODE_CTRL_REG1)
+    if (ctrl_reg1 != frequency)
     {
-        ctrl_reg1 = LIS3DH_HIGH_MODE_CTRL_REG1;
+        ctrl_reg1 = frequency;
     
         error = I2C_Peripheral_WriteRegister(LIS3DH_DEVICE_ADDRESS,
                                              LIS3DH_CTRL_REG1,
@@ -296,6 +303,45 @@ int main(void)
     
     for(;;)
     {
+        //Save the last frequency on the EEPROM 
+        if (FlagInterrupt==1)
+        {
+            FlagInterrupt=0;
+            
+            switch (counter)
+            {
+                case (1):
+                    EEPROM_WriteByte(FREQ_1Hz, 0x00);
+                    frequency=EEPROM_ReadByte(0x00);
+                break;
+                
+                case (2):
+                    EEPROM_WriteByte(FREQ_10Hz, 0x00);
+                    frequency=EEPROM_ReadByte(0x00);
+                break;
+                    
+                case (3):
+                    EEPROM_WriteByte(FREQ_25Hz, 0x00);
+                    frequency=EEPROM_ReadByte(0x00);
+                break;
+                    
+                case (4):
+                    EEPROM_WriteByte(FREQ_50Hz, 0x00);
+                    frequency=EEPROM_ReadByte(0x00);
+                break;
+                    
+                case (5):
+                    EEPROM_WriteByte(FREQ_100Hz, 0x00);
+                    frequency=EEPROM_ReadByte(0x00);
+                break;
+                    
+                case (6):
+                    EEPROM_WriteByte(FREQ_200Hz, 0x00);
+                    frequency=EEPROM_ReadByte(0x00);
+                break;
+            }
+           
+
         CyDelay(100);
 
         error = I2C_Peripheral_ReadRegisterMulti(LIS3DH_DEVICE_ADDRESS,
@@ -319,7 +365,6 @@ int main(void)
         }
         
         
+        }   
     }
 }
-
-/* [] END OF FILE */

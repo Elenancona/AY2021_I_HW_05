@@ -19,6 +19,7 @@
     CY_ISR_PROTO(Custom_isr);
     
     volatile uint8 FlagInterrupt;
+    volatile uint8 counter=0;
     
 #endif
 /* [] END OF FILE */
