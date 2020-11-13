@@ -15,7 +15,9 @@
 #include "project.h"
 #include "stdio.h"
 
-uint8 frequency; 
+
+uint8 frequency;
+
 
 /**
 *   \brief 7-bit I2C address of the slave device.
@@ -48,13 +50,13 @@ uint8 frequency;
 /**
 *   \brief Hex value to set high resolution mode to the accelerator
 */
-#define FREQ_1Hz    0x17  //FREQ=1Hz
-#define FREQ_10Hz   0x27 
-#define FREQ_25Hz   0x37 
-#define FREQ_50Hz   0x47 
-#define FREQ_100Hz  0x57 
-#define FREQ_200Hz  0x67 
 
+    #define FREQ_1Hz    0x17  //FREQ=1Hz
+    #define FREQ_10Hz   0x27 
+    #define FREQ_25Hz   0x37 
+    #define FREQ_50Hz   0x47 
+    #define FREQ_100Hz  0x57 
+    #define FREQ_200Hz  0x67 
 
 /**
 *   \brief Address of the Control register 4
@@ -224,14 +226,14 @@ int main(void)
     
     uint8_t AxisData[6];
     uint8_t DataBuffer[14]; 
-    int16_t OutAxis;
+    int16_t DataOut;
     
     DataBuffer[0] = 0xA0;                        //header
     DataBuffer[13] = 0xC0;                      //footer
     
    
     float Acc_ms2;                               //axis output in m/s^2
-    int32 Acc_mms2;                              //axis output in mm/s^2
+    int32 Acc_int;                               //axis output integer
     
     for(;;)
     {
@@ -271,9 +273,11 @@ int main(void)
                     EEPROM_WriteByte(FREQ_200Hz, 0x00);
                     frequency=EEPROM_ReadByte(0x00);
                 break;
+                    
+                return frequency;
             }
-        }
-    
+        
+        }  
 
         //read the status register
             ErrorCode error = I2C_Peripheral_ReadRegister(LIS3DH_DEVICE_ADDRESS,
@@ -293,17 +297,17 @@ int main(void)
                          for (int i=0; i < 6; i += 2) //we read the 3 axis acc and convert them
                         {
                             //trasforming the 3 axial outputs in 3 right-justified 16-bit integers
-                            OutAxis = (int16)((AxisData[i] | (AxisData[i+1]<<8)))>>4; 
-                            //converting the output values in m/s^2 (for high resol. @ +/-4.0g we have 2 mg/digit)
-                            Acc_ms2 = (float) OutAxis * 2 * 9.806 * 0.001;
+                            DataOut = (int16)((AxisData[i] | (AxisData[i+1]<<8)))>>4; 
+                            //converting the output values in m/s^2 
+                            Acc_ms2 = (float) DataOut * 2 * 9.806 * 0.001;
                             //to keep 3 decimals of the acceleration value (Acc_ms2) it is converted into mm/s^2
-                            Acc_mms2 = Acc_ms2 * 1000;
+                            Acc_int = Acc_ms2 * 1000;
                             //storing each axis data in 4 bytes to send them through UART 
                           
-                            DataBuffer[i*2+1] = (uint8_t)(Acc_mms2 >> 24);
-                            DataBuffer[i*2+2] = (uint8_t)(Acc_mms2 >> 16);
-                            DataBuffer[i*2+3] = (uint8_t)(Acc_mms2 >> 8);
-                            DataBuffer[i*2+4] = (uint8_t)(Acc_mms2 & 0xFF);
+                            DataBuffer[i*2+1] = (uint8_t)(Acc_int >> 24);
+                            DataBuffer[i*2+2] = (uint8_t)(Acc_int >> 16);
+                            DataBuffer[i*2+3] = (uint8_t)(Acc_int >> 8);
+                            DataBuffer[i*2+4] = (uint8_t)(Acc_int & 0xFF);
                           
                         }
                     //the samples are sent through UART communication
