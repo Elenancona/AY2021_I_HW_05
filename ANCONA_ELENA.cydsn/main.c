@@ -14,8 +14,10 @@
 #include "InterruptRoutines.h"
 #include "project.h"
 #include "stdio.h"
+#include "ErrorCode.h"
 
 uint8 frequency; 
+
 /**
 *   \brief 7-bit I2C address of the slave device.
 */
@@ -59,7 +61,7 @@ uint8 frequency;
 */
 #define LIS3DH_CTRL_REG4 0x23
 
-#define LIS3DH_CTRL_REG4_BDU_ACTIVE 0x80
+#define LIS3DH_CTRL_REG4_BDU_ACTIVE 0x88 //In high resolution mode HR=1 
 
 /**
 *   \brief Address of the ADC output LSB register
@@ -77,6 +79,9 @@ int main(void)
     
     EEPROM_UpdateTemperature();
     EEPROM_Start();  
+    
+    //Select a sampling frequency for the LIS3DH Accelerometer from the EEPROM
+    frequency = EEPROM_ReadByte(0x00); 
    
 
     /* Place your initialization/startup code here (e.g. MyInst_Start()) */
@@ -308,7 +313,7 @@ int main(void)
         {
             FlagInterrupt=0;
             
-            switch (counter)
+            switch (contatore)
             {
                 case (1):
                     EEPROM_WriteByte(FREQ_1Hz, 0x00);

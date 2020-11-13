@@ -9,20 +9,21 @@
  *
  * ========================================
 */
-#include "InterruptRoutines.h"
+
 #include "project.h"
 #include "I2C_Interface.h"
 #include "stdio.h"
+#include "InterruptRoutines.h"
 
 
 CY_ISR(Custom_isr)
 {      
     FlagInterrupt=1; 
-    counter++;
+    contatore++;
     
-    if (counter==7)
+    if (contatore==7)
     {
-        counter=0;
+        contatore=0;
     }
 }
 /* [] END OF FILE */
